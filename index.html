@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>九维隐藏人格测试</title>
+		<style>
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+				font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			}
+
+			body {
+				background-color: #0a0a10;
+				background-image: radial-gradient(circle at 50% 0%, #1a1035 0%, #0a0a10 70%);
+				color: #ffffff;
+				min-height: 100vh;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 20px;
+				overflow-x: hidden;
+			}
+
+			.container {
+				width: 100%;
+				max-width: 500px;
+				background: rgba(20, 20, 35, 0.6);
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				border-radius: 20px;
+				padding: 30px 20px;
+				box-shadow: 0 0 40px rgba(160, 80, 255, 0.15);
+				backdrop-filter: blur(10px);
+				display: none;
+				/* 初始隐藏，密码正确后显示 */
+				flex-direction: column;
+				gap: 20px;
+				position: relative;
+			}
+
+			/* 登录界面 */
+			#login-screen {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				text-align: center;
+				padding: 50px 20px;
+			}
+
+			.title {
+				font-size: 28px;
+				font-weight: bold;
+				background: linear-gradient(90deg, #ff6b9e, #b56bff);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				margin-bottom: 10px;
+				letter-spacing: 2px;
+			}
+
+			.subtitle {
+				color: #888;
+				font-size: 14px;
+				margin-bottom: 30px;
+			}
+
+			input[type="password"] {
+				width: 80%;
+				padding: 15px;
+				background: rgba(0, 0, 0, 0.5);
+				border: 1px solid rgba(160, 80, 255, 0.3);
+				border-radius: 10px;
+				color: #fff;
+				font-size: 18px;
+				text-align: center;
+				letter-spacing: 5px;
+				outline: none;
+				margin-bottom: 20px;
+				transition: all 0.3s;
+			}
+
+			input[type="password"]:focus {
+				border-color: #b56bff;
+				box-shadow: 0 0 15px rgba(160, 80, 255, 0.3);
+			}
+
+			button {
+				background: linear-gradient(90deg, #ff6b9e, #b56bff);
+				color: white;
+				border: none;
+				padding: 15px 40px;
+				border-radius: 30px;
+				font-size: 16px;
+				font-weight: bold;
+				cursor: pointer;
+				transition: transform 0.2s, box-shadow 0.2s;
+				letter-spacing: 2px;
+			}
+
+			button:hover {
+				transform: scale(1.05);
+				box-shadow: 0 0 20px rgba(160, 80, 255, 0.5);
+			}
+
+			/* 题目区域 */
+			#quiz-screen {
+				display: none;
+				flex-direction: column;
+				gap: 20px;
+			}
+
+			.progress-bar {
+				width: 100%;
+				height: 6px;
+				background: rgba(255, 255, 255, 0.1);
+				border-radius: 3px;
+				overflow: hidden;
+			}
+
+			.progress-fill {
+				height: 100%;
+				background: linear-gradient(90deg, #ff6b9e, #b56bff);
+				width: 0%;
+				transition: width 0.3s ease;
+			}
+
+			.question-text {
+				font-size: 18px;
+				line-height: 1.6;
+				margin: 10px 0;
+			}
+
+			.options {
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+			}
+
+			.option-btn {
+				background: rgba(255, 255, 255, 0.05);
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				color: #ccc;
+				padding: 15px;
+				border-radius: 12px;
+				text-align: left;
+				cursor: pointer;
+				transition: all 0.3s;
+				font-size: 15px;
+			}
+
+			.option-btn:hover {
+				background: rgba(160, 80, 255, 0.2);
+				border-color: #b56bff;
+				color: #fff;
+			}
+
+			/* 结果界面 */
+			#result-screen {
+				display: none;
+				flex-direction: column;
+				gap: 20px;
+				text-align: center;
+				animation: fadeIn 0.8s ease;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			.result-label {
+				color: #aaa;
+				font-size: 14px;
+				letter-spacing: 2px;
+			}
+
+			.result-title {
+				font-size: 48px;
+				font-weight: 900;
+				color: #ff6b9e;
+				text-shadow: 0 0 20px rgba(255, 107, 158, 0.6);
+				margin: 0;
+				line-height: 1.1;
+			}
+
+			.result-desc {
+				color: #ff8c00;
+				font-size: 14px;
+				font-weight: bold;
+			}
+
+			.result-percent {
+				color: #888;
+				font-size: 12px;
+				margin-top: 5px;
+			}
+
+			.result-message {
+				background: rgba(255, 255, 255, 0.05);
+				padding: 15px;
+				border-radius: 10px;
+				font-size: 14px;
+				color: #ddd;
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				margin: 10px 0;
+			}
+
+			.report-box {
+				background: rgba(30, 20, 50, 0.8);
+				border: 1px solid rgba(160, 80, 255, 0.3);
+				border-radius: 10px;
+				padding: 15px;
+				font-size: 13px;
+			}
+
+			.report-title {
+				color: #b56bff;
+				font-weight: bold;
+				margin-bottom: 5px;
+			}
+
+			.report-code {
+				color: #666;
+				font-size: 10px;
+				font-family: monospace;
+			}
+
+			.top-three {
+				display: flex;
+				justify-content: space-between;
+				gap: 10px;
+				margin: 10px 0;
+			}
+
+			.top-box {
+				flex: 1;
+				background: rgba(255, 255, 255, 0.05);
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				border-radius: 10px;
+				padding: 10px 5px;
+				text-align: center;
+			}
+
+			.top-box.active {
+				border-color: #ff6b9e;
+				background: rgba(255, 107, 158, 0.1);
+			}
+
+			.top-label {
+				font-size: 10px;
+				color: #888;
+				margin-bottom: 5px;
+			}
+
+			.top-name {
+				font-size: 16px;
+				font-weight: bold;
+			}
+
+			.top-pct {
+				font-size: 12px;
+				color: #ff6b9e;
+			}
+
+			.chart-container {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+				margin-top: 15px;
+				text-align: left;
+			}
+
+			.chart-row {
+				display: flex;
+				align-items: center;
+				font-size: 12px;
+				gap: 10px;
+			}
+
+			.chart-name {
+				width: 60px;
+				color: #aaa;
+			}
+
+			.chart-bar-bg {
+				flex: 1;
+				height: 8px;
+				background: rgba(255, 255, 255, 0.1);
+				border-radius: 4px;
+				overflow: hidden;
+			}
+
+			.chart-bar-fill {
+				height: 100%;
+				background: linear-gradient(90deg, #ff6b9e, #b56bff);
+				border-radius: 4px;
+				width: 0%;
+				transition: width 1s ease;
+			}
+
+			.chart-val {
+				width: 40px;
+				text-align: right;
+				color: #fff;
+			}
+
+			.error-msg {
+				color: #ff4d4d;
+				font-size: 14px;
+				margin-bottom: 10px;
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+
+		<!-- 登录界面 -->
+		<div id="login-screen" class="container" style="display: flex;">
+			<div class="title">隐藏人格测试</div>
+			<div class="subtitle">探索你内心深处的九维人格分布</div>
+			<div id="error-msg" class="error-msg">密码错误，请重新输入</div>
+			<input type="password" id="pwd-input" placeholder="请输入访问密码" maxlength="6">
+			<button onclick="checkPassword()">进入测试</button>
+		</div>
+
+		<!-- 题目界面 -->
+		<div id="quiz-screen" class="container">
+			<div class="progress-bar">
+				<div class="progress-fill" id="progress-fill"></div>
+			</div>
+			<div class="question-text" id="question-text">加载中...</div>
+			<div class="options" id="options-container">
+				<!-- 选项由JS动态生成 -->
+			</div>
+		</div>
+
+		<!-- 结果界面 -->
+		<div id="result-screen" class="container">
+			<div class="result-label">你的隐藏人格</div>
+			<div class="result-title" id="result-title">抖S</div>
+			<div class="result-desc" id="result-desc">赤枪统治者</div>
+			<div class="result-percent" id="result-percent">73.3%</div>
+			<div class="result-percent" style="font-size: 12px; margin-top: 5px;">人格主导度：非常明显</div>
+
+			<div class="result-message">
+				你更习惯主动推进事情，而不是一直等待事情自己发生。
+			</div>
+
+			<div class="report-box">
+				<div class="report-title">9维隐藏人格 · 专属报告</div>
+				<div class="report-code" id="report-code">报告编号: B6LN-YWAR-9JCB-RFND</div>
+			</div>
+
+			<div class="top-three">
+				<div class="top-box active">
+					<div class="top-label">TOP 1</div>
+					<div class="top-name" id="top1-name">抖S</div>
+					<div class="top-pct" id="top1-pct">73.3%</div>
+				</div>
+				<div class="top-box">
+					<div class="top-label">TOP 2</div>
+					<div class="top-name" id="top2-name">暴走人格</div>
+					<div class="top-pct" id="top2-pct">14.2%</div>
+				</div>
+				<div class="top-box">
+					<div class="top-label">TOP 3</div>
+					<div class="top-name" id="top3-name">控制狂</div>
+					<div class="top-pct" id="top3-pct">6.2%</div>
+				</div>
+			</div>
+
+			<div class="report-box">
+				<div class="report-title" style="font-size: 14px; margin-bottom: 10px;">九人格分布</div>
+				<div class="chart-container" id="chart-container">
+					<!-- 进度条由JS动态生成 -->
+				</div>
+			</div>
+
+			<button onclick="location.reload()" style="margin-top: 10px;">重新测试</button>
+		</div>
+
+		<script>
+			// --- 配置区域 ---
+			const CORRECT_PASSWORD = "2468";
+
+			// 24道测试题
+			const questions = [{
+					q: "当你想要某样东西时，你通常会：",
+					a: "直接争取，不达目的不罢休",
+					b: "等待合适的时机自然获取"
+				},
+				{
+					q: "在团队合作中，你更倾向于：",
+					a: "掌控全局，分配任务",
+					b: "配合他人，做好自己分内的事"
+				},
+				{
+					q: "面对别人的挑衅，你的第一反应是：",
+					a: "立刻反击，绝不示弱",
+					b: "冷静分析，避免冲突"
+				},
+				{
+					q: "你认为规则是：",
+					a: "用来打破和重新制定的",
+					b: "用来遵守以维持秩序的"
+				},
+				{
+					q: "当你感到愤怒时：",
+					a: "会直接爆发出来",
+					b: "会压抑在心里慢慢消化"
+				},
+				{
+					q: "在感情中，你更偏向于：",
+					a: "掌握主动权",
+					b: "顺其自然"
+				},
+				{
+					q: "看到别人犯错时，你会：",
+					a: "毫不留情地指出",
+					b: "委婉地提醒"
+				},
+				{
+					q: "你更享受哪种感觉？",
+					a: "征服和胜利的快感",
+					b: "平静和安逸的舒适感"
+				},
+				{
+					q: "对于不想做的事情，你会：",
+					a: "果断拒绝，不留余地",
+					b: "勉强自己去做"
+				},
+				{
+					q: "你做决定时通常：",
+					a: "非常迅速且自信",
+					b: "犹豫不决，反复考量"
+				},
+				{
+					q: "在人群中，你希望自己是：",
+					a: "焦点和领导者",
+					b: "观察者和倾听者"
+				},
+				{
+					q: "别人对你的评价通常是：",
+					a: "强势、有主见",
+					b: "温和、好相处"
+				},
+				{
+					q: "遇到困难时，你会：",
+					a: "主动出击，迎难而上",
+					b: "寻找退路或寻求帮助"
+				},
+				{
+					q: "你如何看待权力？",
+					a: "令人着迷，渴望拥有",
+					b: "无所谓，够用就好"
+				},
+				{
+					q: "你更喜欢哪种环境？",
+					a: "充满挑战和竞争",
+					b: "和谐且没有压力"
+				},
+				{
+					q: "当你的计划被打乱时：",
+					a: "会感到愤怒并试图拉回正轨",
+					b: "随遇而安，重新调整"
+				},
+				{
+					q: "你如何对待竞争对手？",
+					a: "视为猎物，想要击败",
+					b: "视为伙伴，和平共处"
+				},
+				{
+					q: "在社交场合，你通常：",
+					a: "主导话题，侃侃而谈",
+					b: "迎合他人，随声附和"
+				},
+				{
+					q: "你更容易产生哪种情绪？",
+					a: "愤怒或强烈的占有欲",
+					b: "焦虑或孤独感"
+				},
+				{
+					q: "对于自己的欲望，你：",
+					a: "毫不掩饰，大胆追求",
+					b: "深深隐藏，克制压抑"
+				},
+				{
+					q: "你觉得人际关系本质是：",
+					a: "博弈与控制",
+					b: "陪伴与依赖"
+				},
+				{
+					q: "面对权威，你会：",
+					a: "敢于挑战，甚至想取代",
+					b: "顺从并遵从指示"
+				},
+				{
+					q: "你希望别人怎么看你？",
+					a: "强大、不可战胜",
+					b: "善良、平易近人"
+				},
+				{
+					q: "在绝望的境地中，你会：",
+					a: "疯狂反扑，绝不认命",
+					b: "放弃抵抗，接受现实"
+				}
+			];
+
+			let currentQuestion = 0;
+			let score = 0; // 选A得2分，选B得0分，计算主导度
+
+			// 检查密码
+			function checkPassword() {
+				const pwd = document.getElementById('pwd-input').value;
+				if (pwd === CORRECT_PASSWORD) {
+					document.getElementById('login-screen').style.display = 'none';
+					document.getElementById('quiz-screen').style.display = 'flex';
+					loadQuestion();
+				} else {
+					const err = document.getElementById('error-msg');
+					err.style.display = 'block';
+					setTimeout(() => {
+						err.style.display = 'none';
+					}, 2000);
+				}
+			}
+
+			// 支持回车登录
+			document.getElementById('pwd-input').addEventListener('keypress', function(e) {
+				if (e.key === 'Enter') {
+					checkPassword();
+				}
+			});
+
+			// 加载题目
+			function loadQuestion() {
+				if (currentQuestion >= questions.length) {
+					showResult();
+					return;
+				}
+
+				const qData = questions[currentQuestion];
+				document.getElementById('question-text').innerText = qData.q;
+
+				// 更新进度条
+				const progress = ((currentQuestion) / questions.length) * 100;
+				document.getElementById('progress-fill').style.width = progress + '%';
+
+				const optionsContainer = document.getElementById('options-container');
+				optionsContainer.innerHTML = `
+                <div class="option-btn" onclick="selectOption(2)">A. ${qData.a}</div>
+                <div class="option-btn" onclick="selectOption(0)">B. ${qData.b}</div>
+            `;
+			}
+
+			// 选择选项
+			function selectOption(scoreValue) {
+				score += scoreValue;
+				currentQuestion++;
+				loadQuestion();
+			}
+
+			// 显示结果
+			function showResult() {
+				document.getElementById('quiz-screen').style.display = 'none';
+				document.getElementById('result-screen').style.display = 'flex';
+
+				// 将总分转换为百分比 (24题，每题最高2分，满分48分)
+				let percent = Math.round((score / 48) * 100);
+				if (percent < 30) percent = Math.floor(Math.random() * 20) + 40; // 保底比例，让数据看起来真实
+
+				// 提取结果中的各类人格分数用于渲染图表
+				// 我们模拟图表数据，让主导项占用大部分比例，其余按比例分配
+				let mainPct = percent;
+				let top2Pct = Math.floor(Math.random() * 8) + 10;
+				let top3Pct = Math.floor(Math.random() * 5) + 5;
+				let remaining = 100 - mainPct - top2Pct - top3Pct;
+
+				let traits = [{
+						name: "抖S",
+						val: mainPct
+					},
+					{
+						name: "暴走人格",
+						val: top2Pct
+					},
+					{
+						name: "控制狂",
+						val: top3Pct
+					},
+					{
+						name: "病娇",
+						val: (remaining * 0.4).toFixed(1)
+					},
+					{
+						name: "虚荣怪",
+						val: (remaining * 0.3).toFixed(1)
+					},
+					{
+						name: "BPD倾向",
+						val: (remaining * 0.15).toFixed(1)
+					},
+					{
+						name: "NPD倾向",
+						val: (remaining * 0.1).toFixed(1)
+					},
+					{
+						name: "抖M",
+						val: (remaining * 0.03).toFixed(1)
+					},
+					{
+						name: "自虐狂",
+						val: "0.1"
+					}
+				];
+
+				// 排序找出前三
+				traits.sort((a, b) => b.val - a.val);
+
+				// 更新顶部摘要
+				document.getElementById('result-percent').innerText = mainPct + "%";
+				document.getElementById('top1-name').innerText = traits[0].name;
+				document.getElementById('top1-pct').innerText = traits[0].val + "%";
+				document.getElementById('top2-name').innerText = traits[1].name;
+				document.getElementById('top2-pct').innerText = traits[1].val + "%";
+				document.getElementById('top3-name').innerText = traits[2].name;
+				document.getElementById('top3-pct').innerText = traits[2].val + "%";
+
+				// 根据分数动态调整封面文字
+				if (percent > 70) {
+					document.getElementById('result-title').innerText = "抖S";
+					document.getElementById('result-desc').innerText = "赤枪统治者";
+				} else if (percent > 50) {
+					document.getElementById('result-title').innerText = "控制狂";
+					document.getElementById('result-desc').innerText = "暗中掌控者";
+				} else {
+					document.getElementById('result-title').innerText = "暴走人格";
+					document.getElementById('result-desc').innerText = "潜藏的孤狼";
+				}
+
+				// 生成随机报告编号
+				const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+				let code = '';
+				for (let i = 0; i < 4; i++) {
+					for (let j = 0; j < 4; j++) {
+						code += chars.charAt(Math.floor(Math.random() * chars.length));
+					}
+					if (i < 3) code += '-';
+				}
+				document.getElementById('report-code').innerText = "报告编号: " + code;
+
+				// 渲染底部的九人格进度条
+				const chartContainer = document.getElementById('chart-container');
+				chartContainer.innerHTML = '';
+
+				traits.forEach(t => {
+					const row = document.createElement('div');
+					row.className = 'chart-row';
+					row.innerHTML = `
+                    <div class="chart-name">${t.name}</div>
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill" style="width: 0%;" data-width="${t.val}%"></div>
+                    </div>
+                    <div class="chart-val">${t.val}%</div>
+                `;
+					chartContainer.appendChild(row);
+				});
+
+				// 延迟执行动画效果，让进度条有滑动生长的感觉
+				setTimeout(() => {
+					const bars = document.querySelectorAll('.chart-bar-fill');
+					bars.forEach(bar => {
+						bar.style.width = bar.getAttribute('data-width');
+					});
+				}, 100);
+			}
+		</script>
+	</body>
+</html>
